@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, useCallback, useLayoutEffect, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -432,13 +438,21 @@ function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("#work");
   const lastScrollY = useRef(0);
+  const firstMenuLinkRef = useRef<HTMLAnchorElement>(null);
+
+  const navLinks = [
+    ["Work", "#work"],
+    ["Process", "#process"],
+    ["Services", "#services"],
+    ["FAQ", "#faq"],
+  ];
 
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 80);
-      // Only hide/show after passing hero area
       if (y > 400) {
         setHidden(y > lastScrollY.current && y - lastScrollY.current > 5);
       } else {
@@ -451,12 +465,45 @@ function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const navLinks = [
-    ["Work", "#work"],
-    ["Process", "#process"],
-    ["Services", "#services"],
-    ["FAQ", "#faq"],
-  ];
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const timer = window.setTimeout(() => firstMenuLinkRef.current?.focus(), 120);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+      window.clearTimeout(timer);
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    const sections = navLinks
+      .map(([, href]) => document.querySelector<HTMLElement>(href))
+      .filter(Boolean) as HTMLElement[];
+
+    if (!sections.length || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSection = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => Number(b.intersectionRatio) - Number(a.intersectionRatio))[0];
+        if (visibleSection) {
+          setActiveSection(`#${visibleSection.target.id}`);
+        }
+      },
+      { threshold: [0.35, 0.55, 0.75] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [navLinks]);
 
   return (
     <>
@@ -483,7 +530,10 @@ function Nav() {
               <a
                 key={l}
                 href={h}
-                className="relative py-1 text-[11px] uppercase tracking-[0.22em] font-medium text-text-secondary transition-colors hover:text-text-primary group"
+                aria-current={activeSection === h ? "page" : undefined}
+                className={`relative py-1 text-[11px] uppercase tracking-[0.22em] font-medium transition-colors group ${
+                  activeSection === h ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
+                }`}
               >
                 <span>{l}</span>
                 <span className="absolute bottom-0 left-1/2 h-[1.5px] w-0 bg-accent transition-all duration-300 -translate-x-1/2 group-hover:w-full" />
@@ -501,6 +551,8 @@ function Nav() {
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="flex size-9 items-center justify-center rounded-xl border border-hairline bg-bg-elevated/40 text-text-primary md:hidden active:scale-95 transition-transform"
+              aria-controls="mobile-menu"
+              aria-expanded={mobileMenuOpen}
               aria-label="Open Menu"
             >
               <Menu className="size-4" />
@@ -518,6 +570,9 @@ function Nav() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 flex flex-col bg-bg/95 backdrop-blur-lg md:hidden"
+            id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-hairline">
               <a
@@ -1613,10 +1668,14 @@ const FAQS = [
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const panelId = `faq-${q.toLowerCase().replace(/\W+/g, "-")}`;
   return (
     <div className="py-5 border-b border-hairline">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
         className="flex w-full cursor-pointer items-center justify-between gap-6 text-left"
       >
         <span className="text-pretty text-lg font-semibold tracking-tight text-text-primary md:text-xl">
@@ -1627,12 +1686,20 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         />
       </button>
       <motion.div
+        id={panelId}
+        role="region"
+        aria-labelledby={panelId + "-label"}
         initial={false}
         animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="overflow-hidden"
       >
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-text-secondary">{a}</p>
+        <p
+          id={panelId + "-label"}
+          className="mt-4 max-w-2xl text-sm leading-relaxed text-text-secondary"
+        >
+          {a}
+        </p>
       </motion.div>
     </div>
   );
@@ -1668,6 +1735,9 @@ function Faq() {
 // ──────────────────────────── footer ────────────────────────────
 
 function Footer() {
+  const [subscriberEmail, setSubscriberEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState("");
+
   const footerLinks = [
     [
       "Studio",
@@ -1715,6 +1785,16 @@ function Footer() {
       icon: Mail,
     },
   ];
+
+  const handleNewsletterSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!subscriberEmail.trim()) {
+      setNewsletterStatus("Please enter a valid email.");
+      return;
+    }
+    setNewsletterStatus("Thanks — we’ll reach out soon.");
+    setSubscriberEmail("");
+  };
 
   return (
     <footer className="border-t border-hairline px-6 py-16 md:px-12 md:py-20 bg-bg">
@@ -1774,6 +1854,36 @@ function Footer() {
               </a>
             ))}
           </div>
+          <div className="mt-8 rounded-3xl border border-hairline bg-bg-elevated/80 p-6 shadow-subtle">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-secondary opacity-80">
+              Newsletter
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+              Get short updates on launches, design tips, and local growth advice.
+            </p>
+            <form onSubmit={handleNewsletterSubmit} className="mt-5 space-y-3">
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="newsletter-email"
+                type="email"
+                value={subscriberEmail}
+                onChange={(event) => setSubscriberEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-2xl border border-hairline bg-bg px-4 py-3 text-sm text-text-primary outline-none transition duration-300 focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <button
+                type="submit"
+                className="w-full rounded-2xl bg-accent px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-bg transition-colors hover:bg-accent-secondary"
+              >
+                Join updates
+              </button>
+              {newsletterStatus && (
+                <p className="text-xs text-text-secondary opacity-90">{newsletterStatus}</p>
+              )}
+            </form>
+          </div>
         </div>
       </div>
       <div className="mx-auto mt-16 flex max-w-[1280px] flex-wrap items-center justify-between gap-4 border-t border-hairline pt-8 text-[10px] uppercase tracking-[0.22em] text-text-secondary opacity-60">
@@ -1785,6 +1895,42 @@ function Footer() {
 }
 
 // ──────────────────────────── scroll progress ────────────────────────────
+
+function BackToTopButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setVisible(window.scrollY > 600);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={scrollToTop}
+      aria-label="Back to top"
+      className={`back-to-top-button ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+    >
+      ↑ Top
+    </button>
+  );
+}
+
+function SkipToContent() {
+  return (
+    <a href="#main-content" className="skip-to-content">
+      Skip to main content
+    </a>
+  );
+}
 
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
@@ -1822,15 +1968,17 @@ function Index() {
 
   return (
     <div className="sky-grain bg-bg text-text-primary select-none">
+      <SkipToContent />
       <CustomCursor />
       <ScrollProgress />
+      <BackToTopButton />
 
       <AnimatePresence mode="wait">
         {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
       </AnimatePresence>
 
       <Nav />
-      <main>
+      <main id="main-content" aria-label="Main content" tabIndex={-1}>
         <Hero />
         <Industries />
         <Solve />

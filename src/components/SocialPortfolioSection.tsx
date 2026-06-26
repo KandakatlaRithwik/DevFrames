@@ -242,6 +242,8 @@ function LaptopMockup({ img, alt }: { img: string; alt: string }) {
           <img
             src={img}
             alt={alt}
+            loading="lazy"
+            decoding="async"
             className="absolute top-0 left-0 w-full h-[135%] object-cover object-top transition-transform duration-[10s] ease-in-out group-hover:translate-y-[-25%]"
           />
           {/* Glass Reflection Flare */}
@@ -276,6 +278,8 @@ function PhoneMockup({ img, alt }: { img: string; alt: string }) {
           <img
             src={img}
             alt={alt}
+            loading="lazy"
+            decoding="async"
             className={
               `absolute top-0 left-0 w-full transition-transform duration-[10s] ease-in-out ` +
               (img.includes("rentease")
@@ -425,9 +429,13 @@ export function SocialSection() {
   ];
 
   return (
-    <div className="relative overflow-hidden bg-[#070708] border-t border-white/[0.05] px-6 pt-24 pb-20 md:px-12 md:pt-32">
+    <div
+      className="relative overflow-hidden bg-[#070708] border-t border-white/[0.05] px-6 pt-24 pb-20 md:px-12 md:pt-32"
+      aria-label="Social and contact section"
+      role="region"
+    >
       {/* Background stars / ambient background design elements */}
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40">
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" aria-hidden="true">
         <div className="absolute top-1/4 left-1/4 size-[500px] rounded-full bg-[#7fa9d1]/5 blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 size-[400px] rounded-full bg-[#e6c9d8]/5 blur-[100px]" />
       </div>
@@ -484,7 +492,12 @@ export function SocialSection() {
 // 2. Selected Projects Section component
 export function SelectedProjects() {
   return (
-    <section id="work" className="relative overflow-hidden bg-[#070708] border-t border-white/[0.05] pt-24 md:pt-32">
+    <section
+      id="work"
+      aria-label="Selected work examples"
+      role="region"
+      className="relative overflow-hidden bg-[#070708] border-t border-white/[0.05] pt-24 md:pt-32"
+    >
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-30">
         <div className="absolute top-1/2 left-1/3 size-[500px] rounded-full bg-[#7fa9d1]/5 blur-[120px]" />
       </div>
@@ -545,6 +558,8 @@ export function FinalCTA() {
   return (
     <section
       id="book"
+      aria-label="Book a discovery call"
+      role="region"
       className="relative overflow-hidden bg-[#070708] px-6 py-28 md:px-12 md:py-36 border-t border-white/[0.05]"
       style={{
         background: "linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(0,0,0,0.85) 100%)",
@@ -569,7 +584,7 @@ export function FinalCTA() {
 
           <div className="mt-10 flex flex-wrap items-center gap-5">
             <a
-              href="https://wa.me/917207086671?text=Hi%20Karthik%2C%20I%27d%20like%20to%20book%2520a%2520discovery%2520call."
+              href="https://wa.me/917673923505?text=Hello%20Karthik%2C%20I%20hope%20you%27re%20well.%20I%20would%20like%20to%20schedule%20a%20discovery%20call%20to%20discuss%20a%20website%20project.%20Please%20let%20me%20know%20your%20available%20slots."
               target="_blank"
               rel="noopener noreferrer"
               className="relative inline-flex items-center justify-center rounded-xl bg-white px-8 py-4.5 text-[11px] font-bold uppercase tracking-[0.2em] text-black shadow-xl hover:bg-neutral-100 transition-colors"
