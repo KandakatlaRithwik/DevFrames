@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#2b2f4a"/>
+      <stop offset="50%" stop-color="#6b4b9b"/>
+      <stop offset="100%" stop-color="#e18fb7"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#g)" />
+  <g fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5">
+    <circle cx="300" cy="220" r="180" />
+    <circle cx="1100" cy="320" r="240" />
+    <circle cx="800" cy="600" r="320" />
+  </g>
+  <g transform="translate(160,120)">
+    <rect x="560" y="140" width="480" height="340" rx="18" fill="rgba(255,255,255,0.03)" />
+    <text x="800" y="200" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="56" fill="#fff">Sankalpa</text>
+    <text x="800" y="260" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" fill="#fff">3D Web Design — Interactive Sculptural Experience</text>
+  </g>
+  <g transform="translate(220,360)" fill="rgba(255,255,255,0.06)">
+    <rect x="180" y="40" width="160" height="160" rx="20" />
+    <rect x="360" y="0" width="220" height="220" rx="28" />
+    <rect x="620" y="20" width="140" height="140" rx="18" />
+  </g>
+</svg>
